@@ -25,9 +25,12 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
+      - name: Print package version
+        run: |
+          poetry version
+
       - name: Build package
         run: |
-          poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
 
       - name: Publish package distributions to PyPI
