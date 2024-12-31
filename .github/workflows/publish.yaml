@@ -13,7 +13,7 @@ jobs:
       url: https://pypi.org/p/phantom-core
     permissions:
       id-token: write
-      
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +27,7 @@ jobs:
 
       - name: Build package
         run: |
+          poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
 
       - name: Publish package distributions to PyPI
