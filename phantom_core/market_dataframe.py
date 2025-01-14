@@ -55,7 +55,7 @@ import re
 from typing_extensions import Self
 
 from .utils import get_first_and_last_valid_index, datetime_ify, filter_cnames
-from ..constants import COL_LEVEL_SEP
+from .constants import COL_LEVEL_SEP
 
 
 def get_date_idx_mappings(df: pd.DataFrame) -> tuple[dict[int, datetime], dict[datetime, int]] | None:

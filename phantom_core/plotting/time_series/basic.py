@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 import warnings
 
 from ..annotations import annotate_ax
-from ....constants import DEFAULT_DATE_FORMAT_STR
+from ...constants import DEFAULT_DATE_FORMAT_STR
 
 
 def compare_two_timeseries_different_scales_plot(df: pd.DataFrame | None = None, cname1: str | None = None, cname2: str | None = None, s1: pd.Series | None = None, s2: pd.Series | None = None):

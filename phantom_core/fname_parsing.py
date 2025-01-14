@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from ..datasource import get_source_tables, SourceTable, DataTimeframe
-from ..constants import COL_LEVEL_SEP, DEFAULT_COLUMN_LEVEL_NAN
+from .datasource import get_source_tables, SourceTable, DataTimeframe
+from .constants import COL_LEVEL_SEP, DEFAULT_COLUMN_LEVEL_NAN
 
 
 SOURCE_TABLES = get_source_tables()
@@ -105,7 +105,7 @@ def get_source_table_name_from_fname(fname: str) -> str:
     """
     _, table, _, _ = get_fname_components(fname)
     
-    if table in SOURCE_TABLE_NAME_NAMES:
+    if table is not None and table in SOURCE_TABLE_NAME_NAMES:
         return table
     else:
         raise ValueError(f'invalid table name: {table}')

@@ -1,9 +1,9 @@
 import pandas as pd
 from sqlalchemy import create_engine, text, Result, Engine
 
-from ..constants import STONKS_DATABASE_URL, PERIOD_CNAME
+from .constants import STONKS_DATABASE_URL, PERIOD_CNAME
 from .market_dataframe import MarketDataFrame
-from ..datasource import SourceTable
+from .datasource import SourceTable
 
 
 def get_stonks_db_engine() -> Engine | None:

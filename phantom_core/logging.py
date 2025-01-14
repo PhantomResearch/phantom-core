@@ -10,7 +10,7 @@ from pytz import timezone
 from contextlib import contextmanager, redirect_stdout
 from typing import Any, Literal, TextIO
 
-from ..constants import LOGGING_TIME_ZONE
+from .constants import LOGGING_TIME_ZONE
 
 
 class LoggerStream(TextIO):
