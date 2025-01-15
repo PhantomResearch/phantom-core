@@ -1,9 +1,28 @@
+from tracemalloc import reset_peak
 import pandas as pd
 from sqlalchemy import create_engine, text, Result, Engine
+from sqlmodel import Session
+from contextlib import contextmanager
 
-from .constants import STONKS_DATABASE_URL, PERIOD_CNAME
+from ..constants import STONKS_DATABASE_URL, PERIOD_CNAME
 from .market_dataframe import MarketDataFrame
-from .datasource import SourceTable
+from ..datasource import SourceTable
+
+
+@contextmanager
+def ensure_session(engine: Engine, session: Session | None = None, commit: bool = False):
+    """Provides a session, either using existing one or creating new one."""
+    if session is not None:
+        yield session
+    else:
+        with Session(engine) as new_session:
+            yield new_session
+            if commit:
+                new_session.commit()
+
+
+def orm_statement_to_sql(stmt) -> str:
+    return str(stmt.compile(compile_kwargs={"literal_binds": True}))
 
 
 def get_stonks_db_engine() -> Engine | None:
