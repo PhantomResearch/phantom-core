@@ -282,6 +282,7 @@ def ohlcv_df_to_aggs(ohlcv: pd.DataFrame, timeframe: DataTimeframe) -> list[Phan
         aggs.append(PhantomEquityAgg.from_pd_series(row, timeframe=DataTimeframe.MIN_1))
     return aggs
 
+
 def copy_constant_col_to_all_rows(df: pd.DataFrame, cname: str) -> pd.DataFrame:
     """
     Copy a constant column to all rows, allowing for missing values in the column as long
@@ -310,7 +311,7 @@ def copy_constant_col_to_all_rows(df: pd.DataFrame, cname: str) -> pd.DataFrame:
     return df
 
 
-def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:                      # TODO: add reindexing option
+def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
     """
     Fill missing values in OHLCV (Open, High, Low, Close, Volume) data.
 
@@ -332,6 +333,7 @@ def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:                      # TODO: a
         - Uses the first non-null open price to fill any missing close prices at the beginning.
         - Fills missing open, high, and low prices with the close price.
         - Asserts that no null values remain after filling.
+        - Does not insert missing rows. Use `reindex_timeseries_df` for that first if needed.
     """
 
     df['volume'] = df['volume'].fillna(0)

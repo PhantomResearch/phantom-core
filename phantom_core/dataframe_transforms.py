@@ -296,7 +296,7 @@ def reindex_timeseries_df(
     end = end if end is not None else df.index[-1]
     
     # Create a new date range
-    periods = pd.date_range(start=start, end=end, freq=_freq)
+    periods = pd.date_range(start=start, end=end, freq=_freq, inclusive=between_time_inclusive)
 
     # Apply between_time filter if specified
     if between_time is not None:
