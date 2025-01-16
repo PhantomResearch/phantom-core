@@ -3,6 +3,16 @@ name: Build, Release, Publish
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_pypi:
+        description: "Skip PyPI publishing"
+        type: boolean
+        default: false
+      skip_gh_release:
+        description: "Skip Github Release creation"
+        type: boolean
+        default: false
 
 jobs:
   build-release-publish:
@@ -30,9 +40,11 @@ jobs:
           ls -l dist/
 
       - name: Publish to PyPI
+        if: inputs.skip_pypi == false
         uses: pypa/gh-action-pypi-publish@release/v1
       
       - name: Create Release
+        if: inputs.skip_gh_release == false
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
