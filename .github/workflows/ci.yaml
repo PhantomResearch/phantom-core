@@ -40,7 +40,14 @@ jobs:
     name: Validate Package Version
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get package version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(poetry version -s)
+          echo "Found version: ${VERSION}"
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
