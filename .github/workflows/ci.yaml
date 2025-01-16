@@ -5,37 +5,6 @@ on:
     branches: [main]
 
 jobs:
-  # pypi-publish:
-  #   name: Publish release to PyPI
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/phantom-core
-  #   permissions:
-  #     id-token: write
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.x"
-
-  #     - name: Install Poetry
-  #       run: pipx install poetry
-
-  #     - name: Print package version
-  #       run: |
-  #         poetry version
-
-  #     - name: Build package
-  #       run: |
-  #         poetry build --no-interaction --no-ansi
-
-  #     - name: Publish package distributions to PyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
-
   ValidateVersion:
     name: Validate Package Version
     runs-on: ubuntu-latest
