@@ -37,5 +37,5 @@ jobs:
 
       - name: Check if version is already published to PyPI
         run: |
-          pipx install pypi-version-checker
-          pypi-version-checker ${{ steps.version.outputs.version }}
+          pip install pypi-version
+          pypi-version check
