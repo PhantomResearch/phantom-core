@@ -37,7 +37,7 @@ jobs:
         run: |
           VERSION=$(poetry version -s)
           echo "Found version: ${VERSION}"
-          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build package
         run: |
