@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-release-publish:
-    name: Build and Create Github Release
+    name: Build, Publish to PyPI, and Create Github Release
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # OIDC for PyPI
