@@ -18,6 +18,12 @@ jobs:
   build-release-publish:
     name: Build and Create Github Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # OIDC for PyPI
+      contents: write  # For GitHub Release
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ github.event.repository.name }}
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
