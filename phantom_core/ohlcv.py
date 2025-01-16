@@ -310,7 +310,7 @@ def copy_constant_col_to_all_rows(df: pd.DataFrame, cname: str) -> pd.DataFrame:
     return df
 
 
-def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
+def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:                      # TODO: add reindexing option
     """
     Fill missing values in OHLCV (Open, High, Low, Close, Volume) data.
 
@@ -411,7 +411,6 @@ def clean_ohlcv(
     if df.isnull().sum().sum() == 0:
         return MarketDataFrame(df)
 
-    original_reindexed_shape = df.shape
     assert isinstance(df.index, pd.DatetimeIndex)
 
     first_observed_ts = get_first_nonnull_ts(df, how='any')
