@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Literal, Annotated
+from typing import Literal, Annotated, overload
 from typing_extensions import Self
 import pandas as pd
 from datetime import time
