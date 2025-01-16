@@ -39,8 +39,9 @@ jobs:
         run: |
           VERSION=$(poetry version -s)
           PACKAGE=$(poetry version | cut -d' ' -f1)
-          echo "Checking if version $VERSION exists on PyPI for package $PACKAGE"
-          if curl -s https://pypi.org/pypi/$PACKAGE/$VERSION/json > /dev/null; then
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/$PACKAGE/$VERSION/json)
+          echo "PyPI API Status Code: $STATUS"
+          if [ $STATUS == "200" ]; then
             echo "Error: Version $VERSION already exists on PyPI"
             exit 1
           fi
