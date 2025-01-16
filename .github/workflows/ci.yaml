@@ -1,0 +1,36 @@
+name: Pull Request Continuous Integration
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  ValidateVersion:
+    name: Validate Package Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install poetry in runner
+        run: |
+          pipx install poetry
+
+      - name: Get package version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(poetry version -s)
+          echo "Found version: ${VERSION}"
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Check if version tag exists
+        run: |
+          TAG="${{ steps.version.outputs.version }}"
+          if [ $(git ls-remote --tags origin "refs/tags/$TAG" | wc -l) -gt 0 ]; then
+            echo "Error: Version $TAG already exists as a tag"
+            exit 1
+          else
+            echo "Success: Version $TAG is available for use"
+          fi
