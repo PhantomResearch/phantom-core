@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-release-publish:
-    name: Build and Create Github Release
+    name: Build, Publish to PyPI, and Create Github Release
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # OIDC for PyPI
@@ -63,36 +63,3 @@ jobs:
             dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      
-
-  # publish:
-  #   name: Publish to PyPI
-  #   needs: [build-and-release]
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/${{ github.event.repository.name }}
-  #   permissions:
-  #     id-token: write  # OIDC for PyPI
-  #     contents: write  # For GitHub Release
-  #   steps:
-  #     - uses: actions/checkout@v4
-      
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.x"
-      
-  #     - name: Install Poetry
-  #       run: pipx install poetry
-      
-  #     - name: Build package
-  #       run: poetry build
-      
-      
-  #     - name: Create GitHub Release
-  #       uses: softprops/action-gh-release@v1
-  #       with:
-  #         tag_name: ${{ needs.create-tag.outputs.version }}
-  #         generate_release_notes: true
