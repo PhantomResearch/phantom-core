@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "phantom-core"
-version = "0.0.5"
+version = "0.0.6"
 description = "Phantom Core"
 authors = ["Adam Lineberry <ablineberry@gmail.com>"]
 license = "MIT"
