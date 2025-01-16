@@ -45,6 +45,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Install poetry in runner
+        run: |
+          pipx install poetry
+
       - name: Get package version from pyproject.toml
         id: version
         run: |
