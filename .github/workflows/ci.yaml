@@ -35,11 +35,13 @@ jobs:
             echo "Success: Version $TAG is available for use"
           fi
 
-      - name: Setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
+      - name: Check if version exists on PyPI
+        run: |
+          VERSION=$(poetry version -s)
+          PACKAGE=$(poetry version | cut -d' ' -f1)
+          echo "Checking if version $VERSION exists on PyPI for package $PACKAGE"
+          if curl -s https://pypi.org/pypi/$PACKAGE/$VERSION/json > /dev/null; then
+            echo "Error: Version $VERSION already exists on PyPI"
+            exit 1
+          fi
       
-      - run: |
-          pip install pypi-version
-          pypi-version check
