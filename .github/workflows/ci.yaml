@@ -55,3 +55,13 @@ jobs:
           VERSION=$(poetry version -s)
           echo "Found version: ${VERSION}"
           echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Check if version tag exists
+        run: |
+          TAG="${{ steps.version.outputs.version }}"
+          if [ $(git ls-remote --tags origin "refs/tags/$TAG" | wc -l) -gt 0 ]; then
+            echo "Error: Version $TAG already exists as a tag"
+            exit 1
+          else
+            echo "Success: Version $TAG is available for use"
+          fi
