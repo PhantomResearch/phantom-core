@@ -35,7 +35,11 @@ jobs:
             echo "Success: Version $TAG is available for use"
           fi
 
-      - name: Check if version is already published to PyPI
-        run: |
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      
+      - run: |
           pip install pypi-version
           pypi-version check
