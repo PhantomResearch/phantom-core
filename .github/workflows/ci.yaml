@@ -2,6 +2,7 @@ name: Pull Request Continuous Integration
 
 on:
   pull_request:
+    branches: [main]
 
 jobs:
   # pypi-publish:
