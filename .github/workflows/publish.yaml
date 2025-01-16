@@ -1,46 +1,80 @@
-name: Upload Python Package to PyPI when a Release is Created
+name: Build, Release, Publish
 
 on:
-  release:
-    types: [created]
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
-  pypi-publish:
-    name: Publish release to PyPI
+  build-release-publish:
+    name: Build and Create Github Release
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/phantom-core
-    permissions:
-      id-token: write
-
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-
+      
       - name: Install Poetry
         run: pipx install poetry
-
-      - name: Print package version
+      
+      - name: Get package version from pyproject.toml
+        id: version
         run: |
-          poetry version
+          VERSION=$(poetry version -s)
+          echo "Found version: ${VERSION}"
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build package
         run: |
-          poetry build --no-interaction --no-ansi
+          poetry build
+          echo "Built files:"
+          ls -l dist/
 
-      - name: Publish package distributions to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      
 
-  ValidatePackageVersion:
-    name: Validate Package Version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate Package Version
-        run: |
-          poetry version
+  # publish:
+  #   name: Publish to PyPI
+  #   needs: [build-and-release]
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/${{ github.event.repository.name }}
+  #   permissions:
+  #     id-token: write  # OIDC for PyPI
+  #     contents: write  # For GitHub Release
+  #   steps:
+  #     - uses: actions/checkout@v4
+      
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.x"
+      
+  #     - name: Install Poetry
+  #       run: pipx install poetry
+      
+  #     - name: Build package
+  #       run: poetry build
+      
+      
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v1
+  #       with:
+  #         tag_name: ${{ needs.create-tag.outputs.version }}
+  #         generate_release_notes: true
