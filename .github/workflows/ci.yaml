@@ -45,4 +45,11 @@ jobs:
             echo "Error: Version $VERSION already exists on PyPI"
             exit 1
           fi
-      
+
+      - name: Install package and dependencies
+        run: |
+          poetry install --with test
+
+      - name: Run tests
+        run: |
+          poetry run test
