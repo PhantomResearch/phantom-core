@@ -228,9 +228,10 @@ def share_same_index(*args: pd.DataFrame | pd.Series) -> bool:
 
 def reindex_timeseries_df(
     df: pd.DataFrame, 
-    freq: pd.Timedelta | DataTimeframe | None = None, 
+    freq: pd.Timedelta | DataTimeframe | datetime.timedelta | None = None, 
     start: pd.Timestamp | None = None, 
     end: pd.Timestamp | None = None, 
+    start_end_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both',
     between_time: tuple[time, time] | None = None, 
     between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both',
     respect_valid_market_days: bool = True,
@@ -238,19 +239,27 @@ def reindex_timeseries_df(
     """
     Reindex a time series DataFrame to a specified frequency and time range.
 
-    Assumes a constant timezone throughout
+    Assumes a constant timezone throughout.
 
     Args:
         df (pd.DataFrame): Input DataFrame with a DatetimeIndex.
-        freq (pd.Timedelta | DataTimeframe | None): Desired frequency for reindexing. If None, uses the DataFrame's index frequency.
-        start (pd.Timestamp | None): Start timestamp for reindexing. If None, uses the first timestamp in df.
-        end (pd.Timestamp | None): End timestamp for reindexing. If None, uses the last timestamp in df.
-        between_time (tuple[time, time] | None): Tuple of (start_time, end_time) to filter timestamps within each day.
-        between_time_inclusive (Literal['left', 'right', 'both', 'neither']): How to handle inclusive intervals for between_time filtering.
-        respect_valid_market_days (bool): If True, only include valid market days in the reindexed DataFrame.
+        freq (pd.Timedelta | DataTimeframe | datetime.timedelta | None): Desired 
+            frequency for reindexing. If None, uses the DataFrame's index frequency.
+        start (pd.Timestamp | None): Start timestamp for reindexing. If None, uses 
+            the first timestamp in df.
+        end (pd.Timestamp | None): End timestamp for reindexing. If None, uses the 
+            last timestamp in df.
+        start_end_inclusive (Literal['left', 'right', 'both', 'neither']): How to 
+            handle inclusive intervals for start/end range.
+        between_time (tuple[time, time] | None): Tuple of (start_time, end_time) 
+            to filter timestamps within each day.
+        between_time_inclusive (Literal['left', 'right', 'both', 'neither']): How 
+            to handle inclusive intervals for between_time filtering.
+        respect_valid_market_days (bool): If True, only include valid market days 
+            in the reindexed DataFrame.
 
     Returns:
-        pd.DataFrame: Reindexed DataFrame.
+        pd.DataFrame | MarketDataFrame: Reindexed DataFrame.
 
     Raises:
         ValueError: If frequency or index requirements are not met.
@@ -258,10 +267,13 @@ def reindex_timeseries_df(
 
     Notes:
         - The function assumes that the input DataFrame has a DatetimeIndex.
-        - If no frequency is provided and the DataFrame's index doesn't have a built-in frequency, a ValueError is raised.
-        - For daily frequency (freq=pd.Timedelta(days=1)), between_time must be None and the index must contain only normalized timestamps.
+        - If no frequency is provided and the DataFrame's index doesn't have a 
+          built-in frequency, a ValueError is raised.
+        - For daily frequency (freq=pd.Timedelta(days=1)), between_time must be 
+          None and the index must contain only normalized timestamps.
         - The function ensures that the index is sorted in ascending order.
-        - If respect_valid_market_days is True, only timestamps corresponding to valid market days are included in the output.
+        - If respect_valid_market_days is True, only timestamps corresponding to 
+          valid market days are included in the output.
     """
     
     assert isinstance(df.index, pd.DatetimeIndex)
@@ -273,10 +285,10 @@ def reindex_timeseries_df(
         assert isinstance(df.index.freq, Tick)
         _freq = df.index.freq.delta
     else:
-        assert isinstance(freq, pd.Timedelta)
+        freq = pd.Timedelta(freq)
         if df.index.freq is not None:
             assert isinstance(df.index.freq, Tick)
-            if df.index.freq.delta != freq:
+            if pd.Timedelta(df.index.freq.delta) != freq:
                 raise ValueError(f'df index has a freq of {df.index.freq.delta}, not {freq}')
         _freq = freq
     
@@ -296,12 +308,16 @@ def reindex_timeseries_df(
     end = end if end is not None else df.index[-1]
     
     # Create a new date range
-    periods = pd.date_range(start=start, end=end, freq=_freq, inclusive=between_time_inclusive)
+    periods = pd.date_range(start=start, end=end, freq=_freq, inclusive=start_end_inclusive)
 
     # Apply between_time filter if specified
     if between_time is not None:
         start_time, end_time = between_time
-        periods = periods.to_series().between_time(start_time=start_time, end_time=end_time, inclusive=between_time_inclusive).index # type: ignore
+        periods = periods.to_series().between_time(
+            start_time=start_time, 
+            end_time=end_time, 
+            inclusive=between_time_inclusive # type: ignore
+        ).index 
         assert isinstance(periods, pd.DatetimeIndex)
 
     # Reindex the DataFrame
@@ -310,7 +326,8 @@ def reindex_timeseries_df(
     if respect_valid_market_days:
         assert isinstance(df.index, pd.DatetimeIndex)
         df['_date'] = df.index.normalize()
-        start_date, end_date = df['_date'].iloc[0].tz_localize(DATA_TIME_ZONE), df['_date'].iloc[-1].tz_localize(DATA_TIME_ZONE)
+        start_date = df['_date'].iloc[0].tz_localize(DATA_TIME_ZONE)
+        end_date = df['_date'].iloc[-1].tz_localize(DATA_TIME_ZONE)
         market_days = get_market_days(start_ts=start_date, end_ts=end_date)
         df = df.loc[df['_date'].isin(market_days)]
         df.drop(columns=['_date'], inplace=True)

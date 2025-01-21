@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  ValidateVersion:
-    name: Validate Package Version
+  ValidateVersionAndRunTests:
+    name: Validate Package Version and Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
