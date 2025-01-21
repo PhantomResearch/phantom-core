@@ -1,9 +1,12 @@
 [tool.poetry]
 name = "phantom-core"
-version = "0.0.9"
+version = "0.0.10"
 description = "Phantom Core"
 authors = ["Adam Lineberry <ablineberry@gmail.com>"]
 license = "MIT"
+packages = [
+    { include = "phantom_core", from = "." }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -23,10 +26,23 @@ nest-asyncio = "^1.6.0"
 ipython = "^8.31.0"
 requests = "^2.32.3"
 polygon-api-client = "^1.14.3"
+sqlmodel = "^0.0.22"
 
-[tool.poetry.scripts]
-# install-lightgbm-cuda = "stonks.scripts.install_lightgbm_cuda:main"
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.4"
+
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.poetry.scripts]
+test = "pytest:main"

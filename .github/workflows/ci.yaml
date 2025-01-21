@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  ValidateVersion:
-    name: Validate Package Version
+  ValidateVersionAndRunTests:
+    name: Validate Package Version and Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -45,4 +45,11 @@ jobs:
             echo "Error: Version $VERSION already exists on PyPI"
             exit 1
           fi
-      
+
+      - name: Install package and dependencies
+        run: |
+          poetry install --with test
+
+      - name: Run tests
+        run: |
+          poetry run test

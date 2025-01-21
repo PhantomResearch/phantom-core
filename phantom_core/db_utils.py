@@ -4,9 +4,9 @@ from sqlalchemy import create_engine, text, Result, Engine
 from sqlmodel import Session
 from contextlib import contextmanager
 
-from ..constants import STONKS_DATABASE_URL, PERIOD_CNAME
+from .constants import STONKS_DATABASE_URL, PERIOD_CNAME
 from .market_dataframe import MarketDataFrame
-from ..datasource import SourceTable
+from .datasource import SourceTable
 
 
 @contextmanager

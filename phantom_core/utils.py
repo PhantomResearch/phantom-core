@@ -18,7 +18,6 @@ from .logging import get_logger
 from .constants import DEFAULT_DATE_FORMAT_STR
 
 
-TEST = 'TEST'
 
 def configure_pandas_display(max_rows: int = 200, max_columns: int = 200):
     """

@@ -311,7 +311,11 @@ def copy_constant_col_to_all_rows(df: pd.DataFrame, cname: str) -> pd.DataFrame:
     return df
 
 
-def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
+def fill_ohlcv(
+    df: pd.DataFrame,
+    constant_cnames: list[str] = ['ticker', 'table'],
+    fill_zero_cnames: list[str] = ['volume', 'vwap', 'transactions', 'avg_size']
+) -> pd.DataFrame:
     """
     Fill missing values in OHLCV (Open, High, Low, Close, Volume) data.
 
@@ -322,23 +326,31 @@ def fill_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
 
     Args:
         df (pd.DataFrame): Input DataFrame containing OHLCV data.
+        constant_cnames (list[str], optional): Column names to copy constant values across all rows. 
+            Defaults to ['ticker', 'table'].
+        fill_zero_cnames (list[str], optional): Column names to fill missing values with 0. 
+            Defaults to ['volume', 'vwap', 'transactions'].
 
     Returns:
         pd.DataFrame: DataFrame with filled OHLCV data.
 
     Notes:
-        - See LucidChart
-        - Fills missing values for volume, vwap, and transactions with 0.
-        - Forward fills close prices.
-        - Uses the first non-null open price to fill any missing close prices at the beginning.
-        - Fills missing open, high, and low prices with the close price.
-        - Asserts that no null values remain after filling.
-        - Does not insert missing rows. Use `reindex_timeseries_df` for that first if needed.
+        - For constant columns (e.g. ticker), copies the single unique non-null value to all rows
+        - Fills missing values for volume, vwap, and transactions with 0
+        - Forward fills close prices
+        - Uses the first non-null open price to fill any missing close prices at the beginning
+        - Fills missing open, high, and low prices with the close price
+        - Asserts that no null values remain after filling
+        - Does not insert missing rows - use `reindex_timeseries_df` first if needed
     """
 
-    df['volume'] = df['volume'].fillna(0)
-    df['vwap'] = df['vwap'].fillna(0)
-    df['transactions'] = df['transactions'].fillna(0)
+    for cname in constant_cnames:
+        if cname in df.columns:
+            df = copy_constant_col_to_all_rows(df, cname)
+
+    for cname in fill_zero_cnames:
+        if cname in df.columns:
+            df[cname] = df[cname].fillna(0)
     
     df['close'] = df['close'].ffill()
 
