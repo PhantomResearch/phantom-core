@@ -7,10 +7,11 @@ from polygon import RESTClient
 from polygon.websocket import WebSocketClient as PolygonWebSocketClient
 from polygon.websocket.models.common import Feed, Market
 from polygon.rest.models import LastTrade
+from polygon.websocket.models import EquityAgg
 
-from .datasource import DataTimeframe, pg_5m_ohlcv_table
+from .datasource import DataTimeframe, pg_5m_ohlcv_table, Ticker
 from .constants import DATA_TIME_ZONE, PERIOD_CNAME
-from .ohlcv import clean_ohlcv
+from .ohlcv import clean_ohlcv, OHLCVAgg
 from .market_dataframe import MarketDataFrame
 from .cache import ttl_cached
 
@@ -282,3 +283,41 @@ def get_last_price(ticker: str) -> float:
 @ttl_cached(20)
 def get_last_price_cached(ticker: str) -> float:
     return get_last_price(ticker)
+
+
+def convert_pg_agg(pg_agg: EquityAgg) -> OHLCVAgg:
+    data = pg_agg.__dict__
+
+    ticker = Ticker(data['symbol'].upper())
+
+    if data['event_type'] == 'AM':
+        timeframe = DataTimeframe.MIN_1
+    else:
+        raise ValueError(f"Unsupported event type: {data['event_type']}")
+    
+    start_ts = pd.to_datetime(data['start_timestamp'], unit='ms')\
+        .tz_localize('UTC')\
+        .tz_convert('US/Eastern')\
+        .tz_localize(None)\
+        .to_pydatetime()
+    end_ts = pd.to_datetime(data['end_timestamp'], unit='ms')\
+        .tz_localize('UTC')\
+        .tz_convert('US/Eastern')\
+        .tz_localize(None)\
+        .to_pydatetime()
+    
+    volume = data['volume'] / 10   # TODO: needs verification
+
+    return OHLCVAgg.create(
+        ticker=ticker,
+        timeframe=timeframe,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        open=float(data['open']),
+        high=float(data['high']),
+        low=float(data['low']),
+        close=float(data['close']),
+        volume=float(volume),
+        vwap=float(data['aggregate_vwap']),
+        avg_size=float(data['average_size'])
+    )
