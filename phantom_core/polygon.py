@@ -12,6 +12,7 @@ from .datasource import DataTimeframe, pg_5m_ohlcv_table
 from .constants import DATA_TIME_ZONE, PERIOD_CNAME
 from .ohlcv import clean_ohlcv
 from .market_dataframe import MarketDataFrame
+from .cache import ttl_cached
 
 
 def _response_empty(resp: Any) -> bool:
@@ -276,3 +277,8 @@ def get_last_price(ticker: str) -> float:
     assert last_trade.price is not None
     last_price = float(last_trade.price)
     return last_price
+
+
+@ttl_cached(20)
+def get_last_price_cached(ticker: str) -> float:
+    return get_last_price(ticker)
