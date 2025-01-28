@@ -425,3 +425,31 @@ class TimeFilter(BaseModel):
     def filter(self, obj: pd.DataFrame | MarketDataFrame | pd.Series) -> pd.DataFrame | pd.Series:
         assert isinstance(obj.index, pd.DatetimeIndex)
         return obj.between_time(start_time=self.start, end_time=self.end, inclusive=self.inclusive) # type: ignore
+
+
+def copy_constant_col_to_all_rows(df: pd.DataFrame, cname: str) -> pd.DataFrame:
+    """
+    Copy a constant column to all rows, allowing for missing values in the column as long
+    as the there is only one unique non-missing value in the column.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        cname (str): Name of the column to copy.
+
+    Returns:
+        pd.DataFrame: DataFrame with the constant column copied to all rows.
+    """
+
+    if cname not in df.columns:
+        raise ValueError(f'{cname} not in df.columns')
+
+    unique_vals = set(df[cname].dropna().unique())
+
+    if len(unique_vals) > 1:
+        raise ValueError(f'{cname} has more than one unique value')
+    if len(unique_vals) == 0:
+        raise ValueError(f'{cname} has no unique values')
+
+    df.loc[:, cname] = unique_vals.pop()
+
+    return df
