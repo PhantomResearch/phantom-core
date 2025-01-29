@@ -1,5 +1,4 @@
 import datetime
-from functools import partial
 from typing import Literal, Annotated, overload
 import numpy as np
 from typing_extensions import Self
@@ -7,16 +6,11 @@ import pandas as pd
 from datetime import time
 from pydantic import PlainValidator, WithJsonSchema, BaseModel, model_validator
 
-from polygon.websocket.models import EquityAgg, EventType
-
 from .dataframe_transforms import copy_constant_col_to_all_rows
-from .utils import get_first_nonnull_ts, is_list_of_type
-from .dataframe_transforms import reindex_timeseries_df, add_null_row_for_timestamp
+from .utils import get_first_nonnull_ts
+from .dataframe_transforms import reindex_timeseries_df
 from .datasource import DataTimeframe, Ticker
 from .market_dataframe import MarketDataFrame
-from .logging import LoggingMixin, get_logger
-from .constants import DATA_TIME_ZONE
-from .tqdm import tqdm
 
 
 OHLCV_CNAMES = ['open', 'high', 'low', 'close', 'volume', 'vwap', 'transactions']
@@ -191,10 +185,6 @@ class OHLCVAggSpec(BaseModel):
 
     @model_validator(mode='after')
     def validate_ohlcvaggspec(self) -> Self:
-
-        # only supporting MIN_1 and MIN_5 for now
-        if self.timeframe not in [DataTimeframe.MIN_1, DataTimeframe.MIN_5]:
-            raise NotImplementedError("Only MIN_1 and MIN_5 are supported")
         
         if self.offset < pd.Timedelta(0):
             raise ValueError("Offset must be positive")
@@ -205,15 +195,19 @@ class OHLCVAggSpec(BaseModel):
                 raise ValueError("Offset must be a multiple of 1 minute")
             
             if self.offset > self.timeframe:
-                raise ValueError("Offset must be less than the timeframe")
+                raise ValueError("Offset must be less than or equal to the timeframe")
             
-            if self.offset > pd.Timedelta(hours=1):
+            if self.offset >= pd.Timedelta(hours=1):
                 raise NotImplementedError("Offset must be less than 1 hour")
             
         return self
     
+    @property
+    def _hash_key(self) -> tuple:
+        return (self.ticker, self.timeframe, self.offset)
+    
     def __hash__(self) -> int:
-        return hash((self.ticker, self.timeframe))
+        return hash(self._hash_key)
     
     def __eq__(self, other: Self) -> bool:
         return hash(self) == hash(other)
@@ -337,5 +331,6 @@ class OHLCVAgg(OHLCVAggSpec):
             avg_size=avg_size
         )
     
-    def __hash__(self) -> int:
-        return hash((self.ticker, self.timeframe, self.start_ts))
+    @property
+    def _hash_key(self) -> tuple:
+        return super()._hash_key + (self.start_ts,)

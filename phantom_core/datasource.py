@@ -13,6 +13,7 @@ class DataTimeframe(pd.Timedelta, Enum):
     DAILY = 24 * 60 * 60 * 10**9  # 1 day in nanoseconds
     MIN_5 = 5 * 60 * 10**9        # 5 minutes in nanoseconds
     MIN_1 = 60 * 10**9            # 1 minute in nanoseconds
+    SECOND = 1 * 10**9            # 1 second in nanoseconds
     TIME = 0                      # 0 for time-based features
 
     def to_pandas_offset_str(self) -> str:
@@ -28,6 +29,8 @@ class DataTimeframe(pd.Timedelta, Enum):
             return 'minute', 5
         elif self == DataTimeframe.MIN_1:
             return 'minute', 1
+        elif self == DataTimeframe.SECOND:
+            return 'second', 1
         else:
             raise ValueError("Invalid DataTimeframe")
         
