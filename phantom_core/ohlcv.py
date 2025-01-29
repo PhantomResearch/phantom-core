@@ -202,6 +202,22 @@ class OHLCVAggSpec(BaseModel):
             
         return self
     
+    @classmethod
+    def create(
+        cls, 
+        ticker: Ticker | str, 
+        timeframe: datetime.timedelta | pd.Timedelta | DataTimeframe, 
+        offset: datetime.timedelta | pd.Timedelta = datetime.timedelta(0)
+    ) -> "OHLCVAggSpec":
+        if isinstance(ticker, str):
+            ticker = Ticker(ticker)
+        if type(timeframe) is pd.Timedelta:
+            timeframe = timeframe.to_pytimedelta()
+        if type(offset) is pd.Timedelta:
+            offset = offset.to_pytimedelta()
+        return cls(ticker=ticker, timeframe=timeframe, offset=offset)
+        
+    
     @property
     def _hash_key(self) -> tuple:
         return (self.ticker, self.timeframe, self.offset)
@@ -266,6 +282,7 @@ class OHLCVAgg(OHLCVAggSpec):
         end_ts: datetime.datetime | pd.Timestamp | None = None,
         transactions: float | None = None,
         avg_size: float | None = None,
+        offset: datetime.timedelta = datetime.timedelta(0)
     ) -> "OHLCVAgg":
         
         if isinstance(start_ts, pd.Timestamp):
@@ -289,7 +306,7 @@ class OHLCVAgg(OHLCVAggSpec):
 
         return cls(ticker=ticker, timeframe=timeframe, start_ts=start_ts, end_ts=end_ts, 
                    open=open, high=high, low=low, close=close, volume=volume, vwap=vwap, 
-                   transactions=transactions, avg_size=avg_size)
+                   transactions=transactions, avg_size=avg_size, offset=offset)
     
     @classmethod
     def from_series(cls, series: pd.Series, **addl_fields) -> Self:
@@ -304,18 +321,18 @@ class OHLCVAgg(OHLCVAggSpec):
 
         df = pd.DataFrame([agg.to_series() for agg in aggs]).sort_index()
 
-        start_ts, end_ts = df.index[0], df.index[-1]
+        start_ts = df['start_ts'].min()
+        end_ts = df['end_ts'].max()
 
-        open = float(df.loc[start_ts]['open'])
+        open = float(df.iloc[0]['open'])
         high = float(df['high'].max())
         low = float(df['low'].min())
-        close = float(df.loc[end_ts]['close'])
+        close = float(df.iloc[-1]['close'])
         volume = float(df['volume'].sum())
-        vwap = float(df['vwap'].sum())                       # TODO: this is wrong
+        vwap = float(df['vwap'].iloc[-1])
         transactions = float(df['transactions'].sum())
-        avg_size = float(df['avg_size'].mean())                     # TODO: check this
 
-        return cls(
+        return cls.create(
             ticker=ticker, 
             timeframe=timeframe, 
             offset=offset,
@@ -328,7 +345,6 @@ class OHLCVAgg(OHLCVAggSpec):
             volume=volume, 
             vwap=vwap, 
             transactions=transactions, 
-            avg_size=avg_size
         )
     
     @property

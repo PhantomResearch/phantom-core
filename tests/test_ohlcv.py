@@ -3,7 +3,8 @@ import pandas as pd
 import copy
 import pandas.testing as tm
 
-from phantom_core.ohlcv import fill_ohlcv
+from phantom_core.ohlcv import OHLCVAgg, OHLCVAggSpec, fill_ohlcv
+from phantom_core.testing.ohlcv_aggs import get_5m_1m_aggs
 
 
 class TestFillOHLCV:
@@ -63,3 +64,19 @@ class TestFillOHLCV:
             'ticker': 'AAPL'
         }
         assert actual == expected
+
+
+@pytest.fixture
+def m5m1_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
+    return get_5m_1m_aggs()
+
+
+class TestOHLCVAgg:
+
+    def test_create_from_aggs(self, m5m1_aggs):
+        m5_spec, m5_agg, m1_aggs = m5m1_aggs
+
+        m5_agg_created = OHLCVAgg.create_from_aggs(spec=m5_spec, aggs=m1_aggs)
+
+        assert m5_agg == m5_agg_created
+
