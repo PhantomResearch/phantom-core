@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "phantom-core"
-version = "0.0.13"
+version = "0.0.14"
 description = "Phantom Core"
 authors = ["Adam Lineberry <ablineberry@gmail.com>"]
 license = "MIT"
@@ -31,14 +31,12 @@ sqlmodel = "^0.0.22"
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.4"
 
-
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
