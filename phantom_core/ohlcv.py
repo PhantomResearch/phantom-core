@@ -10,7 +10,7 @@ from .dataframe_transforms import copy_constant_col_to_all_rows
 from .utils import get_first_nonnull_ts
 from .dataframe_transforms import reindex_timeseries_df
 from .datasource import DataTimeframe, Ticker
-from .market_dataframe import MarketDataFrame
+# from .market_dataframe import MarketDataFrame
 
 
 OHLCV_CNAMES = ['open', 'high', 'low', 'close', 'volume', 'vwap', 'transactions']
@@ -97,7 +97,7 @@ def clean_ohlcv(
     respect_valid_market_days: bool = True,
     bfill_data_start_threshold: pd.Timedelta | Literal['default'] = 'default',
     copy_constant_cols: list[str] = ['ticker', 'table']
-) -> MarketDataFrame:
+) -> pd.DataFrame:
     """
     Handle missing timestamps in OHLCV (Open, High, Low, Close, Volume) data.
 
@@ -117,7 +117,7 @@ def clean_ohlcv(
         copy_constant_cols (list[str]): Columns to copy to all rows.
 
     Returns:
-        MarketDataFrame: Processed DataFrame with handled missing timestamps and filled values.
+        pd.DataFrame: Processed DataFrame with handled missing timestamps and filled values.
 
     Raises:
         ValueError: If there are issues with ticker or table columns having multiple or no unique values.
@@ -145,7 +145,7 @@ def clean_ohlcv(
     )
 
     if df.isnull().sum().sum() == 0:
-        return MarketDataFrame(df)
+        return df
 
     assert isinstance(df.index, pd.DatetimeIndex)
 
@@ -164,14 +164,14 @@ def clean_ohlcv(
             bfill_data_start_threshold = pd.Timedelta(minutes=60)
 
     if first_observed_ts - df.index[0] <= bfill_data_start_threshold:
-        return MarketDataFrame(fill_ohlcv(df))
+        return fill_ohlcv(df)
 
     before_df = df.loc[:first_observed_ts].iloc[:-1].copy()
     after_df = df.loc[first_observed_ts:].copy()
 
     after_df = fill_ohlcv(after_df)
 
-    df = MarketDataFrame(pd.concat([before_df, after_df], axis=0))
+    df = pd.concat([before_df, after_df], axis=0)
 
     assert df.loc[first_observed_ts:].isnull().sum().sum() == 0
 
