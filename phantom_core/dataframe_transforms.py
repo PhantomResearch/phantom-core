@@ -235,7 +235,7 @@ def reindex_timeseries_df(
     between_time: tuple[time, time] | None = None, 
     between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both',
     respect_valid_market_days: bool = True,
-) -> pd.DataFrame | MarketDataFrame:
+) -> pd.DataFrame:
     """
     Reindex a time series DataFrame to a specified frequency and time range.
 
@@ -259,7 +259,7 @@ def reindex_timeseries_df(
             in the reindexed DataFrame.
 
     Returns:
-        pd.DataFrame | MarketDataFrame: Reindexed DataFrame.
+        pd.DataFrame: Reindexed DataFrame.
 
     Raises:
         ValueError: If frequency or index requirements are not met.

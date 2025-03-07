@@ -1,6 +1,6 @@
 from tracemalloc import reset_peak
 import pandas as pd
-from sqlalchemy import create_engine, text, Result, Engine
+from sqlalchemy import create_engine, text, Result, Engine, inspect
 from sqlmodel import Session
 from contextlib import contextmanager
 
@@ -37,7 +37,7 @@ def get_stonks_db_engine() -> Engine | None:
     return create_engine(STONKS_DATABASE_URL)
 
 
-STONKS_ENGINE = get_stonks_db_engine()
+STONKS_ENGINE = get_stonks_db_engine()    # TODO
 
 def get_engine() -> Engine:
     if not STONKS_ENGINE:
@@ -89,6 +89,11 @@ def list_tables() -> pd.DataFrame:
     ORDER BY table_schema, table_name;
     """
     return runquery(sql)
+
+
+def listtables(engine: Engine) -> list[str]:
+    insp = inspect(engine)
+    return insp.get_table_names()
 
 
 def drop_table(tablename: str) -> None:
