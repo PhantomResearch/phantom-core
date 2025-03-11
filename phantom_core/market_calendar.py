@@ -53,7 +53,7 @@ def get_market_days(
     start_ts: pd.Timestamp, 
     end_ts: pd.Timestamp, 
     tz: str | None = None,
-    strip_tzinfo: bool = True
+    # strip_tzinfo: bool = True            TODO
 ) -> list[pd.Timestamp]:
     """
     Get a list of market days between the given start and end timestamps.
@@ -65,7 +65,7 @@ def get_market_days(
     Args:
         start_ts (pd.Timestamp): The start timestamp with timezone information.
         end_ts (pd.Timestamp): The end timestamp with timezone information.
-        strip_tzinfo (bool): If True, remove timezone information from returned Timestamps. Defaults to True.
+        strip_tzinfo (bool): If True, remove timezone information from returned Timestamps. Defaults to True.   TODO
 
     Returns:
         list[pd.Timestamp]: A list of Timestamps representing market days, normalized
@@ -77,8 +77,8 @@ def get_market_days(
 
     Note:
         - User can provide tz-naive start and end ts with a tz, or tz-aware start and end ts without a tz
-        - If strip_tzinfo is True, the returned Timestamps will have no timezone information (naive).
-        - If strip_tzinfo is False, the returned Timestamps will retain the timezone of the input timestamps.
+        - If strip_tzinfo is True, the returned Timestamps will have no timezone information (naive).          TODO
+        - If strip_tzinfo is False, the returned Timestamps will retain the timezone of the input timestamps.  TODO
     """
 
     if tz is not None:
@@ -99,8 +99,8 @@ def get_market_days(
     
     days = NYSE_CALENDAR.valid_days(start_date=start_ts, end_date=end_ts, tz=_tz).tolist()
 
-    if strip_tzinfo:
-        days = [ts.tz_localize(None) for ts in days]
+    # if strip_tzinfo:
+    #     days = [ts.tz_localize(None) for ts in days]          TODO
 
     return days
 
@@ -197,7 +197,7 @@ class MarketTimestampMagic:
 
         # If respecting market days, pre-fetch a buffer of valid market days
         if self.respect_valid_market_days:
-            self._valid_market_days_buffer = get_market_days(start_ts=start_ts, end_ts=start_ts + pd.Timedelta(days=400), strip_tzinfo=False)
+            self._valid_market_days_buffer = get_market_days(start_ts=start_ts, end_ts=start_ts + pd.Timedelta(days=400))
 
         if not self._ts_valid(start_ts):
             raise ValueError('provided start_ts must be a valid timestamp')
@@ -220,7 +220,7 @@ class MarketTimestampMagic:
             raise ValueError(f'provided ts is before the valid market days buffer: {ts} < {self._valid_market_days_buffer[0]}')
         
         if ts.normalize() > self._valid_market_days_buffer[-1]:
-            self._valid_market_days_buffer = get_market_days(start_ts=self.start_ts, end_ts=ts + pd.Timedelta(days=400), strip_tzinfo=False)
+            self._valid_market_days_buffer = get_market_days(start_ts=self.start_ts, end_ts=ts + pd.Timedelta(days=400))
 
         return ts.normalize() in self._valid_market_days_buffer
     

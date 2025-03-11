@@ -326,8 +326,12 @@ def reindex_timeseries_df(
     if respect_valid_market_days:
         assert isinstance(df.index, pd.DatetimeIndex)
         df['_date'] = df.index.normalize()
-        start_date = df['_date'].iloc[0].tz_localize(DATA_TIME_ZONE)
-        end_date = df['_date'].iloc[-1].tz_localize(DATA_TIME_ZONE)
+        start_date = df['_date'].iloc[0]
+        if start_date.tzinfo is None:
+            start_date = start_date.tz_localize(DATA_TIME_ZONE)
+        end_date = df['_date'].iloc[-1]
+        if end_date.tzinfo is None:
+            end_date = end_date.tz_localize(DATA_TIME_ZONE)
         market_days = get_market_days(start_ts=start_date, end_ts=end_date)
         df = df.loc[df['_date'].isin(market_days)]
         df.drop(columns=['_date'], inplace=True)

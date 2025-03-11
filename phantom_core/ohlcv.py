@@ -235,10 +235,15 @@ class HistoricalOHLCVAggSpec(OHLCVAggSpec):
     start_ts: datetime.datetime
     end_ts: datetime.datetime
     between_time: tuple[time, time] | None = None
-    between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both'
+    between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'left'
     respect_valid_market_days: bool = False
     cleaned: bool = True
-        
+
+    @model_validator(mode='after')
+    def validate_historicalohlcvaggspec(self) -> Self:
+        if not self.cleaned and self.between_time is not None:
+            raise ValueError("between_time must be None if cleaned is False")
+        return self
 
 
 class OHLCVAgg(OHLCVAggSpec):

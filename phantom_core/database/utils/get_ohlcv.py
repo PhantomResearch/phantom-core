@@ -7,6 +7,7 @@ from ...ohlcv import HistoricalOHLCVAggSpec, clean_ohlcv
 from .connection import get_postgres_engine
 from ..config import DatabaseName
 from ...datasource import Ticker
+from ...constants import DATA_TIME_ZONE
 
 # Re-export
 __all__ = ['HistoricalOHLCVAggSpec', 'get_historical_ohlcv_df_from_db', 'Ticker']
@@ -35,17 +36,33 @@ def get_historical_ohlcv_df_from_db(spec: HistoricalOHLCVAggSpec, engine: Engine
     else:
         raise ValueError(f"Timeframe {spec.timeframe} not supported [yet] in this function")
     
-    # Build the SQL query
+    # Handle timezone conversion for start_ts and end_ts
+    start_ts = pd.Timestamp(spec.start_ts)
+    end_ts = pd.Timestamp(spec.end_ts)
+    
+    # If timestamps don't have timezone info, assume they're in US/Eastern
+    if start_ts.tzinfo is None:
+        start_ts = start_ts.tz_localize('US/Eastern')
+    if end_ts.tzinfo is None:
+        end_ts = end_ts.tz_localize('US/Eastern')
+    
+    # Convert to UTC for database query
+    start_ts_utc = start_ts.tz_convert('UTC')
+    end_ts_utc = end_ts.tz_convert('UTC')
+    
+    # Build the SQL query with UTC timestamps
     query = f"""
     SELECT * FROM {table_name}
     WHERE symbol = '{spec.ticker}'
-    AND timestamp >= '{spec.start_ts}'
-    AND timestamp < '{spec.end_ts}'
+    AND timestamp >= '{start_ts_utc.isoformat()}'
+    AND timestamp < '{end_ts_utc.isoformat()}'
     ORDER BY timestamp
     """
     
     # Execute the query and load into DataFrame
     df = pd.read_sql(query, engine, index_col='timestamp', parse_dates=['timestamp'])
+    assert isinstance(df.index, pd.DatetimeIndex)
+    df.index = df.index.tz_convert(DATA_TIME_ZONE)
     
     # If DataFrame is empty, return it as is
     if df.empty:
@@ -62,8 +79,8 @@ def get_historical_ohlcv_df_from_db(spec: HistoricalOHLCVAggSpec, engine: Engine
         df = clean_ohlcv(
             df=df,
             timeframe=pd.Timedelta(spec.timeframe),
-            start=pd.Timestamp(spec.start_ts),
-            end=pd.Timestamp(spec.end_ts),
+            # start=start_ts,  # Use the timezone-aware timestamps
+            # end=end_ts,
             between_time=spec.between_time,
             between_time_inclusive=spec.between_time_inclusive,
             respect_valid_market_days=spec.respect_valid_market_days
