@@ -1,10 +1,12 @@
 import datetime
+from pickle import NONE
 from typing import Literal, Annotated, overload
 import numpy as np
 from typing_extensions import Self
 import pandas as pd
 from datetime import time
 from pydantic import PlainValidator, WithJsonSchema, BaseModel, model_validator
+from sqlalchemy.engine import Engine
 
 from .dataframe_transforms import copy_constant_col_to_all_rows
 from .utils import get_first_nonnull_ts
@@ -228,6 +230,15 @@ class OHLCVAggSpec(BaseModel):
     def __eq__(self, other: Self) -> bool:
         return hash(self) == hash(other)
     
+
+class HistoricalOHLCVAggSpec(OHLCVAggSpec):
+    start_ts: datetime.datetime
+    end_ts: datetime.datetime
+    between_time: tuple[time, time] | None = None
+    between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both'
+    respect_valid_market_days: bool = False
+        
+
 
 class OHLCVAgg(OHLCVAggSpec):
     start_ts: datetime.datetime

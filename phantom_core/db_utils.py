@@ -11,7 +11,12 @@ from .datasource import SourceTable
 
 @contextmanager
 def ensure_session(engine: Engine, session: Session | None = None, commit: bool = False):
-    """Provides a session, either using existing one or creating new one."""
+    """
+    Provides a session, either using existing one or creating new one.
+    
+    Notes:
+        - Currently mainly used in trading system (eg, OMS and AMS).
+    """
     if session is not None:
         yield session
     else:
