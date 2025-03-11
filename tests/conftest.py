@@ -4,7 +4,7 @@ import copy
 
 @pytest.fixture
 def ohlcv_df() -> pd.DataFrame:
-    index = pd.date_range(start='2024-03-20 09:30:00', periods=5, freq='5min')
+    index = pd.date_range(start='2024-03-20 09:30:00', periods=5, freq='5min', tz='America/New_York')
     df = pd.DataFrame({
         'volume': [1000, 1500, 800, 2000, 1200],
         'vwap': [150.25, 150.50, 150.40, 150.75, 150.60],

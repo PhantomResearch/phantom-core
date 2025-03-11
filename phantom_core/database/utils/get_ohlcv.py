@@ -40,29 +40,25 @@ def get_historical_ohlcv_df_from_db(spec: HistoricalOHLCVAggSpec, engine: Engine
     start_ts = pd.Timestamp(spec.start_ts)
     end_ts = pd.Timestamp(spec.end_ts)
     
-    # If timestamps don't have timezone info, assume they're in US/Eastern
-    if start_ts.tzinfo is None:
-        start_ts = start_ts.tz_localize('US/Eastern')
-    if end_ts.tzinfo is None:
-        end_ts = end_ts.tz_localize('US/Eastern')
+    # Ensure timestamps have timezone info
+    # This should be handled by HistoricalOHLCVAggSpec validator
+    # but double checking for confidence
+    assert start_ts.tzinfo is not None and end_ts.tzinfo is not None
+    assert str(start_ts.tzinfo) == str(end_ts.tzinfo)
     
-    # Convert to UTC for database query
-    start_ts_utc = start_ts.tz_convert('UTC')
-    end_ts_utc = end_ts.tz_convert('UTC')
-    
-    # Build the SQL query with UTC timestamps
+    # Build the SQL query with UTC timestamps (table in UTC)
     query = f"""
     SELECT * FROM {table_name}
     WHERE symbol = '{spec.ticker}'
-    AND timestamp >= '{start_ts_utc.isoformat()}'
-    AND timestamp < '{end_ts_utc.isoformat()}'
+    AND timestamp >= '{start_ts.tz_convert('UTC').isoformat()}'
+    AND timestamp < '{end_ts.tz_convert('UTC').isoformat()}'
     ORDER BY timestamp
     """
     
     # Execute the query and load into DataFrame
     df = pd.read_sql(query, engine, index_col='timestamp', parse_dates=['timestamp'])
     assert isinstance(df.index, pd.DatetimeIndex)
-    df.index = df.index.tz_convert(DATA_TIME_ZONE)
+    df.index = df.index.tz_convert(start_ts.tzinfo)  # convert index to time being used in the request (ie, HistoricalOHLCVAggSpec)
     
     # If DataFrame is empty, return it as is
     if df.empty:

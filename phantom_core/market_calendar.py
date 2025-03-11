@@ -51,9 +51,7 @@ def get_market_calendar(start_date: str = '2010-01-01', n_future_days: int = 365
 
 def get_market_days(
     start_ts: pd.Timestamp, 
-    end_ts: pd.Timestamp, 
-    tz: str | None = None,
-    # strip_tzinfo: bool = True            TODO
+    end_ts: pd.Timestamp,
 ) -> list[pd.Timestamp]:
     """
     Get a list of market days between the given start and end timestamps.
@@ -65,42 +63,31 @@ def get_market_days(
     Args:
         start_ts (pd.Timestamp): The start timestamp with timezone information.
         end_ts (pd.Timestamp): The end timestamp with timezone information.
-        strip_tzinfo (bool): If True, remove timezone information from returned Timestamps. Defaults to True.   TODO
 
     Returns:
         list[pd.Timestamp]: A list of Timestamps representing market days, normalized
-        to midnight in the input timezone. If strip_tzinfo is True, timezone information is removed.
+        to midnight in the input timezone.
 
     Raises:
         ValueError: If start_ts or end_ts do not have timezone information.
         ValueError: If start_ts and end_ts have different timezone information.
-
-    Note:
-        - User can provide tz-naive start and end ts with a tz, or tz-aware start and end ts without a tz
-        - If strip_tzinfo is True, the returned Timestamps will have no timezone information (naive).          TODO
-        - If strip_tzinfo is False, the returned Timestamps will retain the timezone of the input timestamps.  TODO
     """
 
-    if tz is not None:
-        if start_ts.tzinfo is not None or end_ts.tzinfo is not None:
-            raise ValueError('cannot pass tz-aware start or end ts with tz arg')
-        _tz = tz
-    else:
-        if start_ts.tzinfo is None or end_ts.tzinfo is None:
-            raise ValueError('start_ts and end_ts must have timezone info if not passing tz arg')
-        if str(start_ts.tzinfo) != str(end_ts.tzinfo):
-            raise ValueError('start_ts and end_ts must have the same timezone info')
-        _tz = str(start_ts.tzinfo)
-        start_ts = start_ts.tz_localize(None)
-        end_ts = end_ts.tz_localize(None)
-        
-    start_ts = start_ts.normalize()
-    end_ts = end_ts.normalize()
+    # Validate that both timestamps have timezone information
+    if start_ts.tzinfo is None:
+        raise ValueError("start_ts must have timezone information")
+    if end_ts.tzinfo is None:
+        raise ValueError("end_ts must have timezone information")
     
-    days = NYSE_CALENDAR.valid_days(start_date=start_ts, end_date=end_ts, tz=_tz).tolist()
-
-    # if strip_tzinfo:
-    #     days = [ts.tz_localize(None) for ts in days]          TODO
+    # Validate that both timestamps have the same timezone
+    if str(start_ts.tzinfo) != str(end_ts.tzinfo):
+        raise ValueError("start_ts and end_ts must have the same timezone")
+    
+    days = NYSE_CALENDAR.valid_days(
+        start_date=start_ts.tz_localize(None), 
+        end_date=end_ts.tz_localize(None), 
+        tz=str(start_ts.tzinfo)
+    ).tolist()
 
     return days
 

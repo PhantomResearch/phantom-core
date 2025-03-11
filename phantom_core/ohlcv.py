@@ -107,6 +107,16 @@ def clean_ohlcv(
     to a specified frequency and time range, fills missing values, and handles various
     data integrity issues.
 
+    Notes on time-related arguments:
+        - start and end are both optional. you can provide one or both.
+        - for start and end, if provided, must have timezone info
+        - if start and end are provided, they must have the same timezone
+        - between_time, if provided, should be in the same timezone as start and end (user must ensure this!)
+        - if start not provided, the function will use the first timestamp in the DataFrame
+        - if end not provided, the function will use the last timestamp in the DataFrame
+        - if the range of start and/or end is not covered by the data the function will attempt to extrapolate.
+        
+
     Args:
         df (pd.DataFrame): Input DataFrame with OHLCV data.
         timeframe (DataTimeframe): Desired frequency for reindexing.
@@ -135,6 +145,14 @@ def clean_ohlcv(
         - If bfill_data_start_threshold is 'default', it sets to 1 day for daily or longer timeframes,
           and 60 minutes for shorter timeframes.
     """
+    
+    # validate timestamps
+    if start is not None and start.tzinfo is None:
+        raise ValueError("start must have timezone info")
+    if end is not None and end.tzinfo is None:
+        raise ValueError("end must have timezone info")
+    if start is not None and end is not None and str(start.tzinfo) != str(end.tzinfo):
+        raise ValueError("start and end must have the same timezone")
     
     df = reindex_timeseries_df(
         df=df,
@@ -243,6 +261,13 @@ class HistoricalOHLCVAggSpec(OHLCVAggSpec):
     def validate_historicalohlcvaggspec(self) -> Self:
         if not self.cleaned and self.between_time is not None:
             raise ValueError("between_time must be None if cleaned is False")
+        
+        if self.start_ts.tzinfo is None or self.end_ts.tzinfo is None:
+            raise ValueError(
+                "start_ts and end_ts must have timezone info; "
+                "remember to specify between_time in the same timezone!"
+            )
+        
         return self
 
 
