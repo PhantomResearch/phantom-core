@@ -237,6 +237,7 @@ class HistoricalOHLCVAggSpec(OHLCVAggSpec):
     between_time: tuple[time, time] | None = None
     between_time_inclusive: Literal['left', 'right', 'both', 'neither'] = 'both'
     respect_valid_market_days: bool = False
+    cleaned: bool = True
         
 
 

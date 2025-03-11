@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Float, DateTime, String, BigInteger
 import pandas as pd
 from sqlalchemy.orm import DeclarativeBase
+from enum import Enum
 
 class Base(DeclarativeBase):
     pass
