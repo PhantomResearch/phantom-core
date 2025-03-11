@@ -10,45 +10,6 @@ from .datasource import DataTimeframe
 
 
 
-def get_market_calendar(start_date: str = '2010-01-01', n_future_days: int = 365) -> tuple[pd.DataFrame, list[pd.Timestamp]]:
-    """
-    Get an empty calendar in the form of a daily dataframe with trading days only.
-    This calendar will span from `start_date` to `datetime.now() + n_future_days`.
-
-    Returns:
-        mkt_df: dataframe of days when the market is open, including holidays and weekends
-        market_closed_list: a list of business days when the market isn't open (assuming these are holidays)
-    """
-
-    # TODO: is this still needed? Might be nice to keep around for future use, but clean it up
-
-    # NYSE Stock Market Days Open
-    nyse = mcal.get_calendar('NYSE')
-
-    # Add 365 days to the current date
-    next_year_date = dt.datetime.now() + dt.timedelta(days=n_future_days)
-
-    mkt_df = nyse.schedule(start_date=f'{start_date}', end_date=f'{next_year_date}')
-    mkt_df.index = pd.to_datetime(mkt_df.index).normalize()
-    mkt_df['index_backup'] = mkt_df.index
-    mkt_df['mkt_df_creation_filler'] = True
-
-    # Identify all business days in the date range of mkt_df
-    all_business_days = pd.date_range(start=mkt_df.index.min(), end=mkt_df.index.max(), freq='B')
-
-    # Find missing business days (bank holidays)
-    market_closed_days = all_business_days.difference(mkt_df.index.tolist())
-
-    # Convert missing_days to a list
-    market_closed_list = market_closed_days.to_list()
-
-    mkt_df.sort_index(inplace=True)
-
-    mkt_df.columns = pd.MultiIndex.from_tuples([(c, DEFAULT_COLUMN_LEVEL_NAN, DEFAULT_COLUMN_LEVEL_NAN, DEFAULT_COLUMN_LEVEL_NAN) for c in mkt_df.columns])
-
-    return mkt_df.copy(), market_closed_list
-
-
 def get_market_days(
     start_ts: pd.Timestamp, 
     end_ts: pd.Timestamp,
