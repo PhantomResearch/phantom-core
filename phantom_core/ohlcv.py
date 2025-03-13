@@ -285,6 +285,13 @@ class OHLCVAgg(OHLCVAggSpec):
 
     @model_validator(mode="after")
     def validate_ohlcvagg(self) -> Self:
+
+        if self.start_ts.tzinfo is None or self.end_ts.tzinfo is None:
+            raise ValueError(
+                "start_ts and end_ts must have timezone info; "
+            )
+        if str(self.start_ts.tzinfo) != str(self.end_ts.tzinfo):
+            raise ValueError("start_ts and end_ts must have the same timezone")
         
         if (self.end_ts - self.start_ts) != self.timeframe:
             raise ValueError("end_ts - start_ts must be equal to timeframe")
