@@ -306,7 +306,24 @@ def reindex_timeseries_df(
     # Set start and end if not provided
     start = start if start is not None else df.index[0]
     end = end if end is not None else df.index[-1]
-    
+
+    # Validate timezone consistency
+    if start.tzinfo is None:
+        raise ValueError("start timestamp must have timezone info (cannot be tz-naive)")
+    if end.tzinfo is None:
+        raise ValueError("end timestamp must have timezone info (cannot be tz-naive)")
+    if df.index.tzinfo is None:
+        raise ValueError("DataFrame index must have timezone info (cannot be tz-naive)")
+    if str(start.tzinfo) != str(df.index.tzinfo):
+        raise ValueError(
+            f"start timestamp timezone ({start.tzname()}) does not match "
+            f"DataFrame index timezone ({df.index.tzinfo.tzname(None)})"
+        )
+    if str(end.tzinfo) != str(df.index.tzinfo):
+        raise ValueError(
+            f"end timestamp timezone ({end.tzname()}) does not match "
+            f"DataFrame index timezone ({df.index.tzinfo.tzname(None)})"
+        )
     # Create a new date range
     periods = pd.date_range(start=start, end=end, freq=_freq, inclusive=start_end_inclusive)
 
@@ -326,8 +343,8 @@ def reindex_timeseries_df(
     if respect_valid_market_days:
         assert isinstance(df.index, pd.DatetimeIndex)
         df['_date'] = df.index.normalize()
-        start_date = df['_date'].iloc[0].tz_localize(DATA_TIME_ZONE)
-        end_date = df['_date'].iloc[-1].tz_localize(DATA_TIME_ZONE)
+        start_date = df['_date'].iloc[0]
+        end_date = df['_date'].iloc[-1]
         market_days = get_market_days(start_ts=start_date, end_ts=end_date)
         df = df.loc[df['_date'].isin(market_days)]
         df.drop(columns=['_date'], inplace=True)

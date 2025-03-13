@@ -35,7 +35,7 @@ class TestReindexTimeseriesDF:
         actual = reindex_timeseries_df(
             ohlcv_df, 
             freq=datetime.timedelta(minutes=5),
-            end=pd.Timestamp('2024-03-20 09:55')
+            end=pd.Timestamp('2024-03-20 09:55', tz='America/New_York')
         )
         assert len(actual) == original_len + 1
 
@@ -47,7 +47,7 @@ class TestReindexTimeseriesDF:
         actual = reindex_timeseries_df(
             ohlcv_df, 
             freq=datetime.timedelta(minutes=5),
-            end=pd.Timestamp('2024-03-20 09:55'),
+            end=pd.Timestamp('2024-03-20 09:55', tz='America/New_York'),
             start_end_inclusive='left'
         )
         assert len(actual) == original_len
@@ -60,6 +60,6 @@ class TestReindexTimeseriesDF:
         actual = reindex_timeseries_df(
             ohlcv_df, 
             freq=datetime.timedelta(minutes=5),
-            start=pd.Timestamp('2024-03-20 09:25')
+            start=pd.Timestamp('2024-03-20 09:25', tz='America/New_York')
         )
         assert len(actual) == original_len + 1

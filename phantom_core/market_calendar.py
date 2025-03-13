@@ -10,50 +10,9 @@ from .datasource import DataTimeframe
 
 
 
-def get_market_calendar(start_date: str = '2010-01-01', n_future_days: int = 365) -> tuple[pd.DataFrame, list[pd.Timestamp]]:
-    """
-    Get an empty calendar in the form of a daily dataframe with trading days only.
-    This calendar will span from `start_date` to `datetime.now() + n_future_days`.
-
-    Returns:
-        mkt_df: dataframe of days when the market is open, including holidays and weekends
-        market_closed_list: a list of business days when the market isn't open (assuming these are holidays)
-    """
-
-    # TODO: is this still needed? Might be nice to keep around for future use, but clean it up
-
-    # NYSE Stock Market Days Open
-    nyse = mcal.get_calendar('NYSE')
-
-    # Add 365 days to the current date
-    next_year_date = dt.datetime.now() + dt.timedelta(days=n_future_days)
-
-    mkt_df = nyse.schedule(start_date=f'{start_date}', end_date=f'{next_year_date}')
-    mkt_df.index = pd.to_datetime(mkt_df.index).normalize()
-    mkt_df['index_backup'] = mkt_df.index
-    mkt_df['mkt_df_creation_filler'] = True
-
-    # Identify all business days in the date range of mkt_df
-    all_business_days = pd.date_range(start=mkt_df.index.min(), end=mkt_df.index.max(), freq='B')
-
-    # Find missing business days (bank holidays)
-    market_closed_days = all_business_days.difference(mkt_df.index.tolist())
-
-    # Convert missing_days to a list
-    market_closed_list = market_closed_days.to_list()
-
-    mkt_df.sort_index(inplace=True)
-
-    mkt_df.columns = pd.MultiIndex.from_tuples([(c, DEFAULT_COLUMN_LEVEL_NAN, DEFAULT_COLUMN_LEVEL_NAN, DEFAULT_COLUMN_LEVEL_NAN) for c in mkt_df.columns])
-
-    return mkt_df.copy(), market_closed_list
-
-
 def get_market_days(
     start_ts: pd.Timestamp, 
-    end_ts: pd.Timestamp, 
-    tz: str | None = None,
-    strip_tzinfo: bool = True
+    end_ts: pd.Timestamp,
 ) -> list[pd.Timestamp]:
     """
     Get a list of market days between the given start and end timestamps.
@@ -65,42 +24,31 @@ def get_market_days(
     Args:
         start_ts (pd.Timestamp): The start timestamp with timezone information.
         end_ts (pd.Timestamp): The end timestamp with timezone information.
-        strip_tzinfo (bool): If True, remove timezone information from returned Timestamps. Defaults to True.
 
     Returns:
         list[pd.Timestamp]: A list of Timestamps representing market days, normalized
-        to midnight in the input timezone. If strip_tzinfo is True, timezone information is removed.
+        to midnight in the input timezone.
 
     Raises:
         ValueError: If start_ts or end_ts do not have timezone information.
         ValueError: If start_ts and end_ts have different timezone information.
-
-    Note:
-        - User can provide tz-naive start and end ts with a tz, or tz-aware start and end ts without a tz
-        - If strip_tzinfo is True, the returned Timestamps will have no timezone information (naive).
-        - If strip_tzinfo is False, the returned Timestamps will retain the timezone of the input timestamps.
     """
 
-    if tz is not None:
-        if start_ts.tzinfo is not None or end_ts.tzinfo is not None:
-            raise ValueError('cannot pass tz-aware start or end ts with tz arg')
-        _tz = tz
-    else:
-        if start_ts.tzinfo is None or end_ts.tzinfo is None:
-            raise ValueError('start_ts and end_ts must have timezone info if not passing tz arg')
-        if str(start_ts.tzinfo) != str(end_ts.tzinfo):
-            raise ValueError('start_ts and end_ts must have the same timezone info')
-        _tz = str(start_ts.tzinfo)
-        start_ts = start_ts.tz_localize(None)
-        end_ts = end_ts.tz_localize(None)
-        
-    start_ts = start_ts.normalize()
-    end_ts = end_ts.normalize()
+    # Validate that both timestamps have timezone information
+    if start_ts.tzinfo is None:
+        raise ValueError("start_ts must have timezone information")
+    if end_ts.tzinfo is None:
+        raise ValueError("end_ts must have timezone information")
     
-    days = NYSE_CALENDAR.valid_days(start_date=start_ts, end_date=end_ts, tz=_tz).tolist()
-
-    if strip_tzinfo:
-        days = [ts.tz_localize(None) for ts in days]
+    # Validate that both timestamps have the same timezone
+    if str(start_ts.tzinfo) != str(end_ts.tzinfo):
+        raise ValueError("start_ts and end_ts must have the same timezone")
+    
+    days = NYSE_CALENDAR.valid_days(
+        start_date=start_ts.tz_localize(None), 
+        end_date=end_ts.tz_localize(None), 
+        tz=str(start_ts.tzinfo)
+    ).tolist()
 
     return days
 
@@ -197,7 +145,7 @@ class MarketTimestampMagic:
 
         # If respecting market days, pre-fetch a buffer of valid market days
         if self.respect_valid_market_days:
-            self._valid_market_days_buffer = get_market_days(start_ts=start_ts, end_ts=start_ts + pd.Timedelta(days=400), strip_tzinfo=False)
+            self._valid_market_days_buffer = get_market_days(start_ts=start_ts, end_ts=start_ts + pd.Timedelta(days=400))
 
         if not self._ts_valid(start_ts):
             raise ValueError('provided start_ts must be a valid timestamp')
@@ -220,7 +168,7 @@ class MarketTimestampMagic:
             raise ValueError(f'provided ts is before the valid market days buffer: {ts} < {self._valid_market_days_buffer[0]}')
         
         if ts.normalize() > self._valid_market_days_buffer[-1]:
-            self._valid_market_days_buffer = get_market_days(start_ts=self.start_ts, end_ts=ts + pd.Timedelta(days=400), strip_tzinfo=False)
+            self._valid_market_days_buffer = get_market_days(start_ts=self.start_ts, end_ts=ts + pd.Timedelta(days=400))
 
         return ts.normalize() in self._valid_market_days_buffer
     
