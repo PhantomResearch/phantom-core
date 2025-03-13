@@ -7,8 +7,8 @@ from ..datasource import Ticker, DataTimeframe
 
 candle_5m_data = {
     'timeframe': datetime.timedelta(minutes=5),
-    'start_ts': pd.Timestamp('2025-01-28 10:00:00').to_pydatetime(),
-    'end_ts': pd.Timestamp('2025-01-28 10:05:00').to_pydatetime(),
+    'start_ts': pd.Timestamp('2025-01-28 10:00:00', tz='America/New_York').to_pydatetime(),
+    'end_ts': pd.Timestamp('2025-01-28 10:05:00', tz='America/New_York').to_pydatetime(),
     'open': 10.0,
     'close': 20.0,
     'high': 25.0,
@@ -27,8 +27,8 @@ def get_5m_1m_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
     agg = OHLCVAgg.create(
         ticker=Ticker('AAPL'), 
         timeframe=DataTimeframe.MIN_1,
-        start_ts=pd.Timestamp('2025-01-28 10:00:00').to_pydatetime(),
-        end_ts=pd.Timestamp('2025-01-28 10:01:00').to_pydatetime(),
+        start_ts=pd.Timestamp('2025-01-28 10:00:00', tz='America/New_York').to_pydatetime(),
+        end_ts=pd.Timestamp('2025-01-28 10:01:00', tz='America/New_York').to_pydatetime(),
         open=10.0,
         high=20.0,
         low=10.0,
@@ -42,8 +42,8 @@ def get_5m_1m_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
     agg = OHLCVAgg.create(
         ticker=Ticker('AAPL'), 
         timeframe=DataTimeframe.MIN_1,
-        start_ts=pd.Timestamp('2025-01-28 10:01:00').to_pydatetime(),
-        end_ts=pd.Timestamp('2025-01-28 10:02:00').to_pydatetime(),
+        start_ts=pd.Timestamp('2025-01-28 10:01:00', tz='America/New_York').to_pydatetime(),
+        end_ts=pd.Timestamp('2025-01-28 10:02:00', tz='America/New_York').to_pydatetime(),
         open=15.0,
         high=20.0,
         low=15.0,
@@ -57,8 +57,8 @@ def get_5m_1m_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
     agg = OHLCVAgg.create(
         ticker=Ticker('AAPL'), 
         timeframe=DataTimeframe.MIN_1,
-        start_ts=pd.Timestamp('2025-01-28 10:02:00').to_pydatetime(),
-        end_ts=pd.Timestamp('2025-01-28 10:03:00').to_pydatetime(),
+        start_ts=pd.Timestamp('2025-01-28 10:02:00', tz='America/New_York').to_pydatetime(),
+        end_ts=pd.Timestamp('2025-01-28 10:03:00', tz='America/New_York').to_pydatetime(),
         open=20.0,
         high=25.0,
         low=10.0,
@@ -72,8 +72,8 @@ def get_5m_1m_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
     agg = OHLCVAgg.create(
         ticker=Ticker('AAPL'), 
         timeframe=DataTimeframe.MIN_1,
-        start_ts=pd.Timestamp('2025-01-28 10:03:00').to_pydatetime(),
-        end_ts=pd.Timestamp('2025-01-28 10:04:00').to_pydatetime(),
+        start_ts=pd.Timestamp('2025-01-28 10:03:00', tz='America/New_York').to_pydatetime(),
+        end_ts=pd.Timestamp('2025-01-28 10:04:00', tz='America/New_York').to_pydatetime(),
         open=10.0,
         high=10.0,
         low=5.0,
@@ -87,8 +87,8 @@ def get_5m_1m_aggs() -> tuple[OHLCVAggSpec, OHLCVAgg, list[OHLCVAgg]]:
     agg = OHLCVAgg.create(
         ticker=Ticker('AAPL'), 
         timeframe=DataTimeframe.MIN_1,
-        start_ts=pd.Timestamp('2025-01-28 10:04:00').to_pydatetime(),
-        end_ts=pd.Timestamp('2025-01-28 10:05:00').to_pydatetime(),
+        start_ts=pd.Timestamp('2025-01-28 10:04:00', tz='America/New_York').to_pydatetime(),
+        end_ts=pd.Timestamp('2025-01-28 10:05:00', tz='America/New_York').to_pydatetime(),
         open=6.0,
         high=20.0,
         low=5.0,
