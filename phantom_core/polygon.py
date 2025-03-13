@@ -249,7 +249,7 @@ def get_backfill_ohlcv(
     return ohlcv
 
 
-def get_polygon_websocket_client(tickers: list[str], api_key: str | None = None) -> PolygonWebSocketClient:
+def get_polygon_websocket_client(tickers: list[str], api_key: str | None = None) -> PolygonWebSocketClient:          # TODO: check for usage; but probably delete
     """
     Get Polygon WebSocket client. Subscribes to 1-minute aggs for the provided tickers.
 
@@ -286,6 +286,22 @@ def get_last_price_cached(ticker: str) -> float:
 
 
 def convert_pg_agg(pg_agg: EquityAgg) -> OHLCVAgg:
+    """
+    Convert a Polygon EquityAgg object to a phantom OHLCVAgg object.
+    
+    This function transforms the data model from Polygon's format to phantom's internal
+    representation. The main use case is when receiving realtime data streamed from 
+    Polygon via websocket.
+    
+    Args:
+        pg_agg (EquityAgg): The Polygon equity aggregate object to convert.
+        
+    Returns:
+        OHLCVAgg: A phantom OHLCVAgg object containing the same data.
+        
+    Raises:
+        ValueError: If the event type is not supported.
+    """
     data = pg_agg.__dict__
 
     ticker = Ticker(data['symbol'].upper())
@@ -298,12 +314,10 @@ def convert_pg_agg(pg_agg: EquityAgg) -> OHLCVAgg:
     start_ts = pd.to_datetime(data['start_timestamp'], unit='ms')\
         .tz_localize('UTC')\
         .tz_convert('US/Eastern')\
-        .tz_localize(None)\
         .to_pydatetime()
     end_ts = pd.to_datetime(data['end_timestamp'], unit='ms')\
         .tz_localize('UTC')\
         .tz_convert('US/Eastern')\
-        .tz_localize(None)\
         .to_pydatetime()
     
     volume = data['volume'] / 10   # TODO: needs verification
